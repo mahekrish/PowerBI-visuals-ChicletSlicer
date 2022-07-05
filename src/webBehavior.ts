@@ -43,6 +43,7 @@ module powerbi.extensibility.visual {
     export interface ChicletSlicerBehaviorOptions {
         slicerItemContainers: Selection<SelectableDataPoint>;
         slicerItemLabels: Selection<any>;
+        slicerItemLabelsBorder: Selection<any>;
         slicerItemInputs: Selection<any>;
         slicerClear: Selection<any>;
         dataPoints: ChicletSlicerDataPoint[];
@@ -55,6 +56,7 @@ module powerbi.extensibility.visual {
     export class ChicletSlicerWebBehavior implements IInteractiveBehavior {
         private slicers: Selection<SelectableDataPoint>;
         private slicerItemLabels: Selection<any>;
+        private slicerItemLabelsBorder: Selection<any>;
         private slicerItemInputs: Selection<any>;
         private interactivityService: IInteractivityService;
         private slicerSettings: ChicletSlicerSettings;
@@ -71,6 +73,7 @@ module powerbi.extensibility.visual {
                 slicerClear: Selection<any> = options.slicerClear;
 
             this.slicerItemLabels = options.slicerItemLabels;
+            this.slicerItemLabelsBorder = options.slicerItemLabelsBorder;
             this.slicerItemInputs = options.slicerItemInputs;
             this.dataPoints = options.dataPoints;
             this.interactivityService = options.interactivityService;
@@ -80,21 +83,19 @@ module powerbi.extensibility.visual {
             this.selectionHandler = selectionHandler;
 
             this.loadSelection();
-
             slicers.on("mouseover", (dataPoint: ChicletSlicerDataPoint) => {
+                if (dataPoint.selected) (d3.event as MouseEvent).preventDefault();
                 if (dataPoint.selectable) {
                     dataPoint.mouseOver = true;
                     dataPoint.mouseOut = false;
-
                     this.renderMouseover();
                 }
             });
-
             slicers.on("mouseout", (dataPoint: ChicletSlicerDataPoint) => {
+                if (dataPoint.selected) (d3.event as MouseEvent).preventDefault();
                 if (dataPoint.selectable) {
                     dataPoint.mouseOver = false;
                     dataPoint.mouseOut = true;
-
                     this.renderMouseover();
                 }
             });
@@ -103,9 +104,7 @@ module powerbi.extensibility.visual {
                 if (!dataPoint.selectable) {
                     return;
                 }
-
                 (d3.event as MouseEvent).preventDefault();
-
                 let settings: ChicletSlicerSettings = this.slicerSettings;
                 let multiselect: boolean = settings.general.multiselect;
 
@@ -213,7 +212,37 @@ module powerbi.extensibility.visual {
             }
         }
 
+        private getLabelTextBorderBottom(): string {
+            return `${ChicletSlicer.SlicerTextHoverBorderBottomWidth} ${ChicletSlicer.SlicerTextHoverBorderBottomStyle} ${ChicletSlicer.SlicerTextHoverBorderBottomColor} `
+        }
+
         private renderMouseover(): void {
+            this.slicerItemLabelsBorder.style({
+                "border-bottom": (dataPoint: ChicletSlicerDataPoint) => {
+                    return this.getLabelTextBorderBottom();
+                },
+                "width": (dataPoint: ChicletSlicerDataPoint) => {
+                    if (!dataPoint.selected) {
+                        if (dataPoint.mouseOver) {
+                            return ChicletSlicer.SlicerTextHoverBorderFullWidth;
+                        }
+                        if (dataPoint.mouseOut) {
+                            return ChicletSlicer.SlicerTextHoverDefaultWidth;
+                        }
+                        return ChicletSlicer.SlicerTextHoverDefaultWidth;
+                    } else {
+                        return ChicletSlicer.SlicerTextHoverBorderFullWidth;
+                    }
+                },
+                "transition": (dataPoint: ChicletSlicerDataPoint) => {
+                    if (!dataPoint.selected) {
+
+                        return ChicletSlicer.SlicerTextHoverBorderDefaultTransition;
+                    } else {
+                        return "none";
+                    }
+                }
+            });
             this.slicerItemLabels.style({
                 "color": (dataPoint: ChicletSlicerDataPoint) => {
                     if (dataPoint.mouseOver) {
@@ -254,7 +283,6 @@ module powerbi.extensibility.visual {
                         return ChicletSlicer.DefaultOpacity;
                     }
                 });
-
                 d3.select(this).classed("slicerItem-disabled", !dataPoint.selectable);
             });
         }

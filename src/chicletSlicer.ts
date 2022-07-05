@@ -127,6 +127,9 @@ module powerbi.extensibility.visual {
         public static HoveredTextOpacity: number = 0.6;
         public static DimmedOpacity: number = 0.5;
 
+        public static HoveredBorderBottom: string = "4px solid #ff4d01";
+        public static DefaultBorderBottom: string = "4px solid #004878";
+
         public static DefaultFontFamily: string = "helvetica, arial, sans-serif";
         public static DefaultFontSizeInPt: number = 11;
 
@@ -148,6 +151,14 @@ module powerbi.extensibility.visual {
         private static MaxRows: number = 1000;
         private static WidthOfScrollbar: number = 17;
 
+        public static SlicerTextHoverBorderBottomStyle: string = "solid";
+        public static SlicerTextHoverBorderBottomWidth: string = "4px";
+        public static SlicerTextHoverBorderBottomColor: string = "red";
+        public static SlicerTextHoverDefaultWidth: string = "0";
+        public static SlicerTextHoverBorderFullWidth: string = "100%";
+        public static SlicerTextHoverBorderDefaultTransition: string = "all 0.5s ease-out";
+
+
         public static ItemContainerSelector: ClassAndSelector = createClassAndSelector('slicerItemContainer');
         public static SlicerImgWrapperSelector: ClassAndSelector = createClassAndSelector('slicer-img-wrapper');
         public static SlicerTextWrapperSelector: ClassAndSelector = createClassAndSelector('slicer-text-wrapper');
@@ -156,6 +167,7 @@ module powerbi.extensibility.visual {
         public static HeaderTextSelector: ClassAndSelector = createClassAndSelector('headerText');
         public static ContainerSelector: ClassAndSelector = createClassAndSelector('chicletSlicer');
         public static LabelTextSelector: ClassAndSelector = createClassAndSelector('slicerText');
+        public static LabelTextBorderSelector: ClassAndSelector = createClassAndSelector('slicerTextBorder');
         public static HeaderSelector: ClassAndSelector = createClassAndSelector('slicerHeader');
         public static InputSelector: ClassAndSelector = createClassAndSelector('slicerCheckbox');
         public static ClearSelector: ClassAndSelector = createClassAndSelector('clear');
@@ -211,7 +223,7 @@ module powerbi.extensibility.visual {
                     outlineColor: '#000000',
                     outlineWeight: 1,
                     padding: 3,
-                    borderStyle: 'Cut',
+                    borderStyle: 'Square',
 
                 },
                 slicerItemContainer: {
@@ -779,6 +791,26 @@ module powerbi.extensibility.visual {
                 'color': settings.slicerText.fontColor,
                 'opacity': ChicletSlicer.DefaultOpacity
             });
+            let labelTextBorderSelection: UpdateSelection<any> = slicerTextWrapperSelection
+                .selectAll(ChicletSlicer.LabelTextBorderSelector.selector)
+                .data((dataPoint: ChicletSlicerDataPoint) => {
+                    return [dataPoint];
+                });
+
+            labelTextBorderSelection
+                .enter()
+                .append('span')
+                .classed(ChicletSlicer.LabelTextBorderSelector.class, true);
+
+            labelTextBorderSelection.style({
+                'border-bottom': this.getLabelTextBorderBottom(),
+                'width': ChicletSlicer.SlicerTextHoverDefaultWidth,
+                'transition': ChicletSlicer.SlicerTextHoverBorderDefaultTransition
+            });
+
+            labelTextBorderSelection
+                .exit()
+                .remove();
 
             labelTextSelection
                 .exit()
@@ -792,6 +824,10 @@ module powerbi.extensibility.visual {
                 .exit()
                 .remove();
         };
+
+        private getLabelTextBorderBottom(): string {
+            return `${ChicletSlicer.SlicerTextHoverBorderBottomWidth} ${ChicletSlicer.SlicerTextHoverBorderBottomStyle} ${ChicletSlicer.SlicerTextHoverBorderBottomColor} `
+        }
 
         private updateSelection(rowSelection: Selection<any>): void {
             let settings: ChicletSlicerSettings = this.settings,
@@ -902,7 +938,7 @@ module powerbi.extensibility.visual {
                         settings.slicerText.background,
                         (ChicletSlicer.MaxTransparency - settings.slicerText.transparency) / ChicletSlicer.MaxTransparency);
 
-                    this.slicerBody.style('background-color', backgroundColor);
+                    this.slicerBody.style('background-color', 'green');
                 }
                 else {
                     this.slicerBody.style('background-color', null);
@@ -914,6 +950,7 @@ module powerbi.extensibility.visual {
                     let slicerBody: Selection<any> = this.slicerBody.attr('width', this.currentViewport.width),
                         slicerItemContainers: Selection<any> = slicerBody.selectAll(ChicletSlicer.ItemContainerSelector.selector),
                         slicerItemLabels: Selection<any> = slicerBody.selectAll(ChicletSlicer.LabelTextSelector.selector),
+                        slicerItemLabelsBorder: Selection<any> = slicerBody.selectAll(ChicletSlicer.LabelTextBorderSelector.selector),
                         slicerItemInputs: Selection<any> = slicerBody.selectAll(ChicletSlicer.InputSelector.selector),
                         slicerClear: Selection<any> = this.slicerHeader.select(ChicletSlicer.ClearSelector.selector);
 
@@ -921,6 +958,7 @@ module powerbi.extensibility.visual {
                         dataPoints: data.slicerDataPoints,
                         slicerItemContainers: slicerItemContainers,
                         slicerItemLabels: slicerItemLabels,
+                        slicerItemLabelsBorder: slicerItemLabelsBorder,
                         slicerItemInputs: slicerItemInputs,
                         slicerClear: slicerClear,
                         interactivityService: this.interactivityService,
