@@ -169,6 +169,22 @@ module powerbi.extensibility.visual {
             this.forceSelection();
         }
 
+        private handleSlicerTextBorderSelection(): void {
+            this.slicerItemLabelsBorder.each(function (dataPoint: ChicletSlicerDataPoint) {
+                d3.select(this).style({
+                    "border-bottom": (dataPoint: ChicletSlicerDataPoint) => {
+                        return `${ChicletSlicer.SlicerTextHoverBorderBottomWidth} ${ChicletSlicer.SlicerTextHoverBorderBottomStyle} ${ChicletSlicer.SlicerTextHoverBorderBottomColor} `;
+                    },
+                    "width": (dataPoint: ChicletSlicerDataPoint) => {
+                        return (!dataPoint.selected) ? ChicletSlicer.SlicerTextHoverDefaultWidth : ChicletSlicer.SlicerTextHoverBorderFullWidth;
+                    },
+                    "transition": (dataPoint: ChicletSlicerDataPoint) => {
+                        return (!dataPoint.selected) ? ChicletSlicer.SlicerTextHoverBorderDefaultTransition : ChicletSlicer.SlicerTextHoverBorderTransitionNone;
+                    }
+                });
+            });
+        }
+
         private forceSelection(): void {
             if (!this.slicerSettings.general.forcedSelection) {
                 return;
@@ -213,7 +229,7 @@ module powerbi.extensibility.visual {
         }
 
         private getLabelTextBorderBottom(): string {
-            return `${ChicletSlicer.SlicerTextHoverBorderBottomWidth} ${ChicletSlicer.SlicerTextHoverBorderBottomStyle} ${ChicletSlicer.SlicerTextHoverBorderBottomColor} `
+            return `${ChicletSlicer.SlicerTextHoverBorderBottomWidth} ${ChicletSlicer.SlicerTextHoverBorderBottomStyle} ${ChicletSlicer.SlicerTextHoverBorderBottomColor} `;
         }
 
         private renderMouseover(): void {
@@ -230,16 +246,11 @@ module powerbi.extensibility.visual {
                             return ChicletSlicer.SlicerTextHoverDefaultWidth;
                         }
                         return ChicletSlicer.SlicerTextHoverDefaultWidth;
-                    } else {
-                        return ChicletSlicer.SlicerTextHoverBorderFullWidth;
                     }
                 },
                 "transition": (dataPoint: ChicletSlicerDataPoint) => {
                     if (!dataPoint.selected) {
-
                         return ChicletSlicer.SlicerTextHoverBorderDefaultTransition;
-                    } else {
-                        return "none";
                     }
                 }
             });
@@ -267,7 +278,7 @@ module powerbi.extensibility.visual {
         public styleSlicerInputs(slicers: Selection<any>, hasSelection: boolean) {
             let settings = this.slicerSettings,
                 isHighContrastMode = this.options.isHighContrastMode;
-
+            this.handleSlicerTextBorderSelection();
             slicers.each(function (dataPoint: ChicletSlicerDataPoint) {
                 d3.select(this).style({
                     "background": dataPoint.selectable

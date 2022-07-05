@@ -157,6 +157,7 @@ module powerbi.extensibility.visual {
         public static SlicerTextHoverDefaultWidth: string = "0";
         public static SlicerTextHoverBorderFullWidth: string = "100%";
         public static SlicerTextHoverBorderDefaultTransition: string = "all 0.5s ease-out";
+        public static SlicerTextHoverBorderTransitionNone: string = "none";
 
 
         public static ItemContainerSelector: ClassAndSelector = createClassAndSelector('slicerItemContainer');
